@@ -16,3 +16,29 @@ Analisar a estrutura tarifária do transporte público sobre trilhos e estradas 
 ## 📁 Documento Completo
 📄 O relatório executivo completo com a metodologia, tabelas detalhadas e referências tarifárias está disponível para download em PDF:  
 👉 **[Baixar Relatório Executivo (PDF)](./relatorio_analise_tarifas.pdf)**
+
+---
+
+### 📊 Tabelas Detalhadas do Estudo
+
+#### Tabela 3: Economia da Trabalhadora CLT (Base 6% de Desconto)
+
+| Modalidade de Pagamento | Custo Total Sem Benefício | Valor Pago do Próprio Bolso | Economia Gerada pelo VT (%) | Economia em Reais (R$) |
+| :--- | :---: | :---: | :---: | :---: |
+| **Dinheiro / Débito** | R$ 491,40 | R$ 97,51 | **80,15%** | R$ 393,89 |
+| **Bilhete Comum** | R$ 428,40 | R$ 97,51 | **77,23%** | R$ 330,89 |
+| **Vale-Transporte (VT)** | R$ 450,24 | R$ 97,51 (21,66%) | *Base de Comparação* | *(Empresa arca com R$ 352,73)* |
+
+---
+
+#### Tabela 5: Comparativo Mensal (21 dias) - Trabalhadora Autônoma
+
+| Dia da Semana | Gasto em Dinheiro (R$) | Gasto com Bilhete Comum (R$) |
+| :--- | :---: | :---: |
+| Segunda-feira | R$ 34,00 | R$ 31,00 |
+| Terça-feira | R$ 23,40 | R$ 20,40 |
+| Quarta-feira | R$ 34,00 | R$ 31,00 |
+| Quinta-feira | R$ 23,40 | R$ 20,40 |
+| Sexta-feira | R$ 34,00 | R$ 31,00 |
+| **TOTAL MENSAL** | **R$ 595,20** | **R$ 535,20** |
+| **ECONOMIA (%)** | — | **10,08% (R$ 60,00 de economia)** |
