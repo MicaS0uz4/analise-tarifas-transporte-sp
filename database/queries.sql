@@ -10,7 +10,7 @@ USE analise_tarifas;
 -- ============================================================================
 
 -- 1.1 Total gasto por modalidade de pagamento na Segunda-feira (Dia padrão)
--- Total diário com Comum
+-- Total diário com Dinheiro
 SELECT sum(valor) as total_dinheiro
 FROM registro_deslocamento
 WHERE dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Dinheiro';
@@ -50,7 +50,7 @@ WHERE tipo_pagamento = 'Dinheiro'
 GROUP BY dia_semana;
 
 --Total diário com Comum
-SELECT dia_semana as rotina_dia, SUM(valor) as custo_diario_dinheiro
+SELECT dia_semana as rotina_dia, SUM(valor) as custo_diario_comum
 FROM registro_deslocamento_autonoma
 WHERE tipo_pagamento = 'Comum'
 GROUP BY dia_semana;
@@ -59,55 +59,48 @@ GROUP BY dia_semana;
 -- (Rotina A se repete 3x/semana: Seg, Qua, Sex | Rotina B repete 2x/semana: Ter, Qui)
 -- Total SEMANAL com Dinheiro
 SELECT 
-    SUM(CASE 
-            WHEN dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Dinheiro' THEN valor * 3
-            WHEN dia_semana = 'Terça-feira' AND tipo_pagamento = 'Dinheiro' THEN valor * 2
+	SUM(CASE WHEN dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Dinheiro' THEN valor * 3
+			WHEN dia_semana = 'Terça-feira' AND tipo_pagamento = 'Dinheiro' THEN valor * 2
             ELSE 0
-		END
-    ) as gasto_semanal_total
+	END) as gasto_semanal_total
 FROM registro_deslocamento_autonoma;
 
 -- Total SEMANAL com Comum
 SELECT 
-    SUM(CASE 
-            WHEN dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Comum' THEN valor * 3
-            WHEN dia_semana = 'Terça-feira' AND tipo_pagamento = 'Comum' THEN valor * 2
-            ELSE 0
-		END
-    ) as gasto_semanal_total
+	SUM(CASE WHEN dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Comum' THEN valor * 3
+			WHEN dia_semana = 'Terça-feira' AND tipo_pagamento = 'Comum' THEN valor * 2
+			ELSE 0
+		END) as gasto_semanal_total
 FROM registro_deslocamento_autonoma;
 
 -- 2.3 Estimativa de Custo MENSAL isolado por modalidade (Considerando 4 semanas)
 -- Total MENSAL com Dinheiro
 SELECT 
-    SUM(CASE 
-            WHEN dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Dinheiro' THEN valor * 3 * 4
-            WHEN dia_semana = 'Terça-feira' AND tipo_pagamento = 'Dinheiro' THEN valor * 2 * 4
-            ELSE 0
-        END
-    ) AS estimativa_gasto_mensal
+	SUM(CASE WHEN dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Dinheiro' THEN valor * 3 * 4
+			WHEN dia_semana = 'Terça-feira' AND tipo_pagamento = 'Dinheiro' THEN valor * 2 * 4
+			ELSE 0
+		END) as estimativa_gasto_mensal
 FROM registro_deslocamento_autonoma;
 
 -- Total MENSAL com Comum
 SELECT 
-    SUM(CASE 
-            WHEN dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Comum' THEN valor * 3 * 4
-            WHEN dia_semana = 'Terça-feira' AND tipo_pagamento = 'Comum' THEN valor * 2 * 4
-            ELSE 0
-        END
-    ) AS estimativa_gasto_mensal
+	SUM(CASE WHEN dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Comum' THEN valor * 3 * 4
+			WHEN dia_semana = 'Terça-feira' AND tipo_pagamento = 'Comum' THEN valor * 2 * 4
+			ELSE 0
+		END) as estimativa_gasto_mensal
 FROM registro_deslocamento_autonoma;
 
 -- 2.4 COMPARATIVO CONSOLIDADO MENSAL: Dinheiro vs. Bilhete Comum
 -- Agrupa as ponderações de frequência diária para gerar o comparativo final em 1 única tabela
 -- Comparação do custo mensal com dinheiro e do custo mensal com Comum
-SELECT tipo_pagamento, sum(CASE 
-            WHEN dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Comum' THEN valor * 3 * 4
-            WHEN dia_semana = 'Terça-feira' AND tipo_pagamento = 'Comum' THEN valor * 2 * 4
+SELECT tipo_pagamento, 
+		SUM(CASE 
+			WHEN dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Comum' THEN valor * 3 * 4
+			WHEN dia_semana = 'Terça-feira' AND tipo_pagamento = 'Comum' THEN valor * 2 * 4
 			WHEN dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Dinheiro' THEN valor * 3 * 4
-            WHEN dia_semana = 'Terça-feira' AND tipo_pagamento = 'Dinheiro' THEN valor * 2 * 4
-            ELSE 0
-        END) as total_mensal
+			WHEN dia_semana = 'Terça-feira' AND tipo_pagamento = 'Dinheiro' THEN valor * 2 * 4
+			ELSE 0
+		END) as total_mensal
 FROM registro_deslocamento_autonoma
 GROUP BY tipo_pagamento
 ORDER BY total_mensal DESC;
