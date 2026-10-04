@@ -1,86 +1,113 @@
 -- ============================================================================
 -- PROJETO: Análise Comparativa de Tarifas de Transporte Publico
--- ARQUIVO: schema.sql (Estrutura do Banco e Carga Inicial de Dados)
+-- ARQUIVO: queries.sql (Consultas Analíticas e Regras de Negocio)
 -- ============================================================================
 
-CREATE DATABASE IF NOT EXISTS analise_tarifas;
 USE analise_tarifas;
 
--- ----------------------------------------------------------------------------
--- 1. TRABALHADORA CLT
--- ----------------------------------------------------------------------------
--- Criação da tabela registro de deslocamento para a Trabalhadora CLT
-CREATE TABLE registro_deslocamento (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    dia_semana VARCHAR(20) NOT NULL,
-    tipo_transporte VARCHAR(20) NOT NULL, -- 'Ônibus', 'Trem/Metrô'
-    sentido VARCHAR(10) NOT NULL,          -- 'Ida', 'Volta'
-    tipo_pagamento VARCHAR(20) NOT NULL,   -- 'Dinheiro', 'Comum', 'VT'
-    valor DECIMAL(5, 2) NOT NULL
-);
+-- ============================================================================
+-- SECTION 1: ANÁLISES DA TRABALHADORA CLT
+-- ============================================================================
 
--- Inserção dos valores diários de descolamento e suas diferentes modalidades da Trabalhadora CLT
-INSERT INTO registro_deslocamento (dia_semana, tipo_transporte, sentido, tipo_pagamento, valor) VALUES
--- Trajeto em Dinheiro
-('Segunda-feira', 'Ônibus',     'Ida',   'Dinheiro', 6.30),
-('Segunda-feira', 'Ônibus',     'Volta', 'Dinheiro', 6.30),
-('Segunda-feira', 'Trem/Metrô', 'Ida',   'Dinheiro', 5.40),
-('Segunda-feira', 'Trem/Metrô', 'Volta', 'Dinheiro', 5.40),
+-- 1.1 Total gasto por modalidade de pagamento na Segunda-feira (Dia padrão)
+-- Total diário com Comum
+SELECT sum(valor) as total_dinheiro
+FROM registro_deslocamento
+WHERE dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Dinheiro';
 
--- Trajeto em Vale-Transporte (VT)
-('Segunda-feira', 'Ônibus',     'Ida',   'VT',       6.30),
-('Segunda-feira', 'Ônibus',     'Volta', 'VT',       4.80),
-('Segunda-feira', 'Trem/Metrô', 'Ida',   'VT',       4.42),
-('Segunda-feira', 'Trem/Metrô', 'Volta', 'VT',       5.92),
+-- Total diário com comum
+SELECT sum(valor) as total_comum
+FROM registro_deslocamento
+WHERE dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Comum';
 
--- Trajeto em Cartão Comum
-('Segunda-feira', 'Ônibus',     'Ida',   'Comum',    6.30),
-('Segunda-feira', 'Ônibus',     'Volta', 'Comum',    4.80),
-('Segunda-feira', 'Trem/Metrô', 'Ida',   'Comum',    3.90),
-('Segunda-feira', 'Trem/Metrô', 'Volta', 'Comum',    5.40);
+-- Total diário com VT
+SELECT sum(valor) as total_vt
+FROM registro_deslocamento
+WHERE dia_semana = 'Segunda-feira' AND tipo_pagamento = 'VT';
+
+-- Mostra o total diário das três modalidades de pagamento
+SELECT tipo_pagamento, SUM(valor) as gasto_total
+FROM registro_deslocamento
+GROUP BY tipo_pagamento
+ORDER BY gasto_total;
+
+-- Mostra o valor total mensal de cada modalidade
+SELECT tipo_pagamento, SUM(valor) * 21 as valor_mensal
+FROM registro_deslocamento
+GROUP BY tipo_pagamento
+ORDER BY valor_mensal DESC;
 
 
--- ----------------------------------------------------------------------------
--- 2. TRABALHADORA AUTÔNOMA
--- ----------------------------------------------------------------------------
--- Criação da tabela de registros para a Trabalhadora Autônoma
-CREATE TABLE registro_deslocamento_autonoma (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    dia_semana VARCHAR(20) NOT NULL,
-    tipo_transporte VARCHAR(50) NOT NULL, 
-    sentido VARCHAR(10) NOT NULL,           
-    tipo_pagamento VARCHAR(20) NOT NULL,    
-    valor DECIMAL(5, 2) NOT NULL
-);
+-- ============================================================================
+-- SECTION 2: ANÁLISES DA TRABALHADORA AUTÔNOMA
+-- ============================================================================
 
--- Inserção das duas rotinas da Trabalhadora Autônoma
-INSERT INTO registro_deslocamento_autonoma (dia_semana, tipo_transporte, sentido, tipo_pagamento, valor) VALUES
--- ROTINA A: Segunda, Quarta e Sexta (Base: 'Segunda-feira')
--- Opção em Dinheiro
-('Segunda-feira', 'Ônibus (Intermunicipal)', 'Ida',   'Dinheiro', 6.30),
-('Segunda-feira', 'Ônibus (SPTrans)',        'Ida',   'Dinheiro', 5.30),
-('Segunda-feira', 'Trem/Metrô',             'Ida',   'Dinheiro', 5.40),
-('Segunda-feira', 'Trem/Metrô',             'Volta', 'Dinheiro', 5.40),
-('Segunda-feira', 'Ônibus (SPTrans)',        'Volta', 'Dinheiro', 5.30),
-('Segunda-feira', 'Ônibus (Intermunicipal)', 'Volta', 'Dinheiro', 6.30),
+-- 2.1 Custo total diário por Rotina (A vs B) e tipo de pagamento
+-- Total diário com Dinheiro
+SELECT dia_semana as rotina_dia, SUM(valor) as custo_diario_dinheiro
+FROM registro_deslocamento_autonoma
+WHERE tipo_pagamento = 'Dinheiro'
+GROUP BY dia_semana;
 
--- Opção em Cartão Comum
-('Segunda-feira', 'Ônibus (Intermunicipal)', 'Ida',   'Comum',    6.30),
-('Segunda-feira', 'Ônibus (SPTrans)',        'Ida',   'Comum',    5.30),
-('Segunda-feira', 'Trem/Metrô',             'Ida',   'Comum',    3.90),
-('Segunda-feira', 'Trem/Metrô',             'Volta', 'Comum',    5.40),
-('Segunda-feira', 'Ônibus (Intermunicipal)', 'Volta', 'Comum',    4.80),
-('Segunda-feira', 'Ônibus (SPTrans)',        'Volta', 'Comum',    5.30),
+--Total diário com Comum
+SELECT dia_semana as rotina_dia, SUM(valor) as custo_diario_dinheiro
+FROM registro_deslocamento_autonoma
+WHERE tipo_pagamento = 'Comum'
+GROUP BY dia_semana;
 
--- ROTINA B: Terça e Quinta (Base: 'Terça-feira' - Rota mais curta)
--- Opção em Dinheiro
-('Terça-feira',   'Ônibus (Intermunicipal)', 'Ida',   'Dinheiro', 6.30),
-('Terça-feira',   'Trem/Metrô',             'Ida',   'Dinheiro', 5.40),
-('Terça-feira',   'Trem/Metrô',             'Volta', 'Dinheiro', 5.40),
-('Terça-feira',   'Ônibus (Intermunicipal)', 'Volta', 'Dinheiro', 6.30),
+-- 2.2 Custo total SEMANAL por modalidade de pagamento
+-- (Rotina A se repete 3x/semana: Seg, Qua, Sex | Rotina B repete 2x/semana: Ter, Qui)
+-- Total SEMANAL com Dinheiro
+SELECT 
+    SUM(CASE 
+            WHEN dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Dinheiro' THEN valor * 3
+            WHEN dia_semana = 'Terça-feira' AND tipo_pagamento = 'Dinheiro' THEN valor * 2
+            ELSE 0
+		END
+    ) as gasto_semanal_total
+FROM registro_deslocamento_autonoma;
 
--- Opção em Cartão Comum
-('Terça-feira',   'Ônibus (Intermunicipal)', 'Ida',   'Comum',    6.30),
-('Terça-feira',   'Trem/Metrô',             'Ida',   'Comum',    3.90),
-('Terça-feira',   'Trem/Metrô',             'Volta', 'Comum',    5.40),
-('Terça-feira',   'Ônibus (Intermunicipal)', 'Volta', 'Comum',    4.80);
+-- Total SEMANAL com Comum
+SELECT 
+    SUM(CASE 
+            WHEN dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Comum' THEN valor * 3
+            WHEN dia_semana = 'Terça-feira' AND tipo_pagamento = 'Comum' THEN valor * 2
+            ELSE 0
+		END
+    ) as gasto_semanal_total
+FROM registro_deslocamento_autonoma;
+
+-- 2.3 Estimativa de Custo MENSAL isolado por modalidade (Considerando 4 semanas)
+-- Total MENSAL com Dinheiro
+SELECT 
+    SUM(CASE 
+            WHEN dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Dinheiro' THEN valor * 3 * 4
+            WHEN dia_semana = 'Terça-feira' AND tipo_pagamento = 'Dinheiro' THEN valor * 2 * 4
+            ELSE 0
+        END
+    ) AS estimativa_gasto_mensal
+FROM registro_deslocamento_autonoma;
+
+-- Total MENSAL com Comum
+SELECT 
+    SUM(CASE 
+            WHEN dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Comum' THEN valor * 3 * 4
+            WHEN dia_semana = 'Terça-feira' AND tipo_pagamento = 'Comum' THEN valor * 2 * 4
+            ELSE 0
+        END
+    ) AS estimativa_gasto_mensal
+FROM registro_deslocamento_autonoma;
+
+-- 2.4 COMPARATIVO CONSOLIDADO MENSAL: Dinheiro vs. Bilhete Comum
+-- Agrupa as ponderações de frequência diária para gerar o comparativo final em 1 única tabela
+-- Comparação do custo mensal com dinheiro e do custo mensal com Comum
+SELECT tipo_pagamento, sum(CASE 
+            WHEN dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Comum' THEN valor * 3 * 4
+            WHEN dia_semana = 'Terça-feira' AND tipo_pagamento = 'Comum' THEN valor * 2 * 4
+			WHEN dia_semana = 'Segunda-feira' AND tipo_pagamento = 'Dinheiro' THEN valor * 3 * 4
+            WHEN dia_semana = 'Terça-feira' AND tipo_pagamento = 'Dinheiro' THEN valor * 2 * 4
+            ELSE 0
+        END) as total_mensal
+FROM registro_deslocamento_autonoma
+GROUP BY tipo_pagamento
+ORDER BY total_mensal DESC;
